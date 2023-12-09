@@ -1,4 +1,3 @@
-from typing import Set, DefaultDict, Dict, List, Union
 import os
 import sys
 import shutil
@@ -7,23 +6,29 @@ import tempfile
 import datetime
 import collections
 
-RESULT_FOLDERS = ("images", "video", "documents", "audio", "archives")
+RESULTS_FOLDERS = ("images", "video", "documents", "audio", "archives")
+
 
 def normalize(file_name: str) -> str:
     char_map = {
-        ord('a'): 'а', ord('b'): 'б', ord('v'): 'в', ord('h'): 'г', ord('g'): 'ґ',
-        ord('d'): 'д', ord('e'): 'е', ord('ie'): 'є', ord('zh'): 'ж', ord('z'): 'з',
-        ord('y'): 'и', ord('i'): 'і', ord('yi'): 'ї', ord('i'): 'й', ord('k'): 'к',
-        ord('l'): 'л', ord('m'): 'м', ord('n'): 'н', ord('o'): 'о', ord('p'): 'п',
-        ord('r'): 'р', ord('s'): 'с', ord('t'): 'т', ord('u'): 'у', ord('f'): 'ф',
-        ord('kh'): 'х', ord('ts'): 'ц', ord('ch'): 'ч', ord('sh'): 'ш', ord('shch'): 'щ',
-        ord("'"): 'ь', ord('iu'): 'ю', ord('ia'): 'я'
+        'a': 'а', 'b': 'б', 'v': 'в', 'h': 'г', 'g': 'ґ',
+        'd': 'д', 'e': 'е', 'ie': 'є', 'zh': 'ж', 'z': 'з',
+        'y': 'и', 'i': 'і', 'yi': 'ї', 'i': 'й', 'k': 'к',
+        'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п',
+        'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф',
+        'kh': 'х', 'ts': 'ц', 'ch': 'ч', 'sh': 'ш', 'shch': 'щ',
+        "'": 'ь', 'iu': 'ю', 'ia': 'я'
     }
-    return file_name.translate(char_map)
+    
+    for key, value in char_map.items():
+        file_name = file_name.replace(key, value)
 
-def process_dir(result_path: pathlib.Path, element: pathlib.Path, extensions_info: DefaultDict[str, Set[str]]) -> bool:
+    return file_name
+
+def process_dir(result_path, element, extensions_info):
     res = False
-    if element.name not in RESULT_FOLDERS:
+
+    if element.name not in RESULTS_FOLDERS:
         folder_res = diver(result_path, element, extensions_info)
 
         if folder_res is False:
@@ -33,23 +38,27 @@ def process_dir(result_path: pathlib.Path, element: pathlib.Path, extensions_inf
 
     return res
 
-def process_file(result_path: pathlib.Path, element: pathlib.Path, extensions_info: DefaultDict[str, Set[str]]) -> bool:
-    table: Tuple[Tuple[str, ...], ...] = (
-        ("JPEG", "PNG", "JPG", "SVG"),
-        ("AVI", "MP4", "MOV", "MKV"),
-        ("DOC", "DOCX", "TXT", "PDF", "XLXS", "PPTX"),
-        ("MP3", "OGG", "WAV", "AMR"),
-        ("ZIP", "GZ", "TAR"),
+
+def process_file(result_path, element, extensions_info):
+
+    table = (
+        ('JPEG', 'PNG', 'JPG', 'SVG'),
+        ('AVI', 'MP4', 'MOV', 'MKV'),
+        ('DOC', 'DOCX', 'TXT', 'PDF', 'XLSX', 'PPTX'),
+        ('MP3', 'OGG', 'WAV', 'AMR'),
+        ('ZIP', 'GZ', 'TAR')
     )
 
-    suffixes_dict: Dict[str, str] = {
-        table[i][j]: RESULT_FOLDERS[i]
+    suffixes_dict = {
+        table[i][j]: RESULTS_FOLDERS[i]
         for i in range(len(table))
         for j in range(len(table[i]))
     }
+
     suffix = element.suffix[1:].upper()
 
     known = suffixes_dict.get(suffix) is not None
+
     extensions_info["known" if known else "unknown"].add(suffix)
 
     if known:
@@ -69,9 +78,11 @@ def process_file(result_path: pathlib.Path, element: pathlib.Path, extensions_in
             result_path /= f"{normalize(element.stem)}{element.suffix}"
 
             shutil.copy(str(element), str(result_path))
+
     return True
 
-def diver(result_path: pathlib.Path, folder_path: pathlib.Path, extensions_info: DefaultDict[str, Set[str]]) -> bool:
+
+def diver(result_path, folder_path, extensions_info):
     res = False
 
     if not any(folder_path.iterdir()):
@@ -83,18 +94,20 @@ def diver(result_path: pathlib.Path, folder_path: pathlib.Path, extensions_info:
 
     return res
 
-def post_processor(result_path: pathlib.Path, extensions_info: DefaultDict[str, Set[str]]) -> None:
+
+def post_processor(results_path, extensions_info):
     print(f"Known extensions: {extensions_info['known']}")
-    if len(extensions_info):
+    if len(extensions_info['unknown']):
         print(f"Unknown extensions: {extensions_info['unknown']}")
 
-    for folder in result_path.iterdir():
+    for folder in results_path.iterdir():
         print(f"{folder.name}:")
         for item in folder.iterdir():
             print(f"\t{item.name}")
 
-def main(folder_platform_path: str) -> None:
-    extensions_info: DefaultDict[str, Set[str]] = collections.defaultdict(set)
+
+def sorter(folder_platform_path):
+    extensions_info = collections.defaultdict(set)
     folder_path = pathlib.Path(folder_platform_path)
 
     if not folder_path.is_dir():
@@ -104,21 +117,25 @@ def main(folder_platform_path: str) -> None:
         tmp_path = pathlib.Path(tmp_platform_path)
 
         if diver(tmp_path, folder_path, extensions_info) is False:
-            raise RuntimeError("It is an empty directory")
+            raise RuntimeError("It's empty directory")
 
         os.makedirs("results", exist_ok=True)
 
-        result_path = pathlib.Path(
-            f"result/result_{datetime.datetime.now().strftime('%d.%m.%y_%H:%M')}"
+        results_path = pathlib.Path(
+            "results/"
+            f"result_{datetime.datetime.now().strftime('%d.%m.%y_%H:%M:%S')}"
         )
 
         shutil.copytree(
             str(tmp_path),
-            str(result_path)
+            str(results_path)
         )
+
+    post_processor(results_path, extensions_info)
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise RuntimeError(f"usage: {sys.argv[0]} folder_platform_path")
 
-    main(sys.argv[1])
+    sorter(sys.argv[1])
