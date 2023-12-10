@@ -123,7 +123,7 @@ def sorter(folder_platform_path):
 
         results_path = pathlib.Path(
             "results/"
-            f"result_{datetime.datetime.now().strftime('%d.%m.%y_%H:%M:%S')}"
+            f"result_{datetime.datetime.now().strftime('%d.%m.%y_%H.%M.%S')}"
         )
 
         shutil.copytree(
