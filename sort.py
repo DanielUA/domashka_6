@@ -10,17 +10,17 @@ RESULTS_FOLDERS = ("images", "video", "documents", "audio", "archives")
 
 
 def normalize(file_name: str) -> str:
-    char_map = {
-        'a': 'а', 'b': 'б', 'v': 'в', 'h': 'г', 'g': 'ґ',
-        'd': 'д', 'e': 'е', 'ie': 'є', 'zh': 'ж', 'z': 'з',
-        'y': 'и', 'i': 'і', 'yi': 'ї', 'i': 'й', 'k': 'к',
-        'l': 'л', 'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п',
-        'r': 'р', 's': 'с', 't': 'т', 'u': 'у', 'f': 'ф',
-        'kh': 'х', 'ts': 'ц', 'ch': 'ч', 'sh': 'ш', 'shch': 'щ',
-        "'": 'ь', 'iu': 'ю', 'ia': 'я'
+    reverse_char_map = {
+        'а': 'a', 'б': 'b', 'в': 'v', 'г': 'h', 'ґ': 'g',
+        'д': 'd', 'е': 'e', 'є': 'ie', 'ж': 'zh', 'з': 'z',
+        'и': 'y', 'і': 'i', 'ї': 'yi', 'й': 'i', 'к': 'k',
+        'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p',
+        'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f',
+        'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
+        'ь': "'", 'ю': 'iu', 'я': 'ia'
     }
     
-    for key, value in char_map.items():
+    for key, value in reverse_char_map.items():
         file_name = file_name.replace(key, value)
 
     return file_name
