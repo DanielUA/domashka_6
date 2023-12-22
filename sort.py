@@ -18,10 +18,13 @@ def normalize(file_name: str) -> str:
         'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f',
         'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
         'ь': "'", 'ю': 'iu', 'я': 'ia'
-    }
-    
-    for key, value in reverse_char_map.items():
-        file_name = file_name.replace(key, value)
+    }   
+
+    for char in file_name:
+        if char.lower() in reverse_char_map:
+            file_name = file_name.replace(char, reverse_char_map[char.lower()])
+        elif not char.isalnum():
+            file_name = file_name.replace(char, "_")    
 
     return file_name
 
