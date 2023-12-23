@@ -43,13 +43,12 @@ def process_dir(result_path, element, extensions_info):
 
 
 def process_file(result_path, element, extensions_info):
-
     table = (
         ('JPEG', 'PNG', 'JPG', 'SVG'),
         ('AVI', 'MP4', 'MOV', 'MKV'),
         ('DOC', 'DOCX', 'TXT', 'PDF', 'XLSX', 'PPTX'),
         ('MP3', 'OGG', 'WAV', 'AMR'),
-        ('ZIP', 'GZ', 'TAR')
+        ('ZIP', 'GZ', 'TAR'),
     )
 
     suffixes_dict = {
@@ -81,8 +80,13 @@ def process_file(result_path, element, extensions_info):
             result_path /= f"{normalize(element.stem)}{element.suffix}"
 
             shutil.copy(str(element), str(result_path))
+    else:
+        other_path = result_path / "other"
+        other_path.mkdir(exist_ok=True)
+        shutil.copy(str(element), str(other_path))
 
     return True
+
 
 
 def diver(result_path, folder_path, extensions_info):
